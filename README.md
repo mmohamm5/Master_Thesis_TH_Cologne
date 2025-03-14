@@ -1,1 +1,2 @@
-# Master_Thesis_TH_Cologne
+# Thesis Topic
+## Optimizing Distributed Tracing and Telemetry in Microservices Using OpenTelemetry.
