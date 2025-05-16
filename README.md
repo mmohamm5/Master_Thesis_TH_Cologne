@@ -44,7 +44,23 @@ This project explores how to optimize observability in microservices by leveragi
 - Implement AlwaysOnSampler → TraceIdRatioBasedSampler.
 - Visualize the effect using system performance dashboards.
 
-## 🚀 Milestone 8: Real-World Scenario Demo & Final Evaluation
+## 🚀 Milestone 6: Deploy in Kubernetes
+
+- Deploy services on Minikube / Kubernetes cluster.
+
+- Use Helm charts for:
+
+    - OpenTelemetry Collector
+
+    - Prometheus
+
+    - Grafana
+
+    - Jaeger
+
+- Configure OTLP exporters and service discovery.
+  
+## 🚀 Milestone 7: Real-World Scenario Demo & Final Evaluation
 
 
 - Trace a typical business transaction (e.g., user registration → order → payment).
