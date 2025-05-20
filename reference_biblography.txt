@@ -1,0 +1,41 @@
+Citation
+[1] opentelemetry (n.d.). OpenTelemetry. Retrieved May 17, 2025, from https://opentelemetry.io/
+Bib: [1] OpenTelemetry Project, OpenTelemetry. [Online]. Available: https://opentelemetry.io/. [Accessed: May 18, 2025].
+
+[2]| Field            | Entry                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Author**       | Talaver, Oleh V., Vakaliuk, Tetiana A.                                                                                         |
+| **Title**        | Telemetry to solve dynamic analysis of a distributed system                                                                    |
+| **Journal Name** | Journal of Edge Computing                                                                                                      |
+| **Year**         | 2024                                                                                                                           |
+| **Volume**       | 3                                                                                                                              |
+| **Issue**        | 1                                                                                                                              |
+| **Pages**        | 87–109                                                                                                                         |
+| **URL**          | [https://acnsci.org/journal/index.php/jec/article/view/728/734](https://acnsci.org/journal/index.php/jec/article/view/728/734) |
+Bib: Talaver, O. V., & Vakaliuk, T. A. (2024). Telemetry to solve dynamic analysis of a distributed system. Journal of Edge Computing, 3(1), 87–109. https://acnsci.org/journal/index.php/jec/article/view/728/734
+
+
+[3]| Field           | Entry                                                                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Author**      | Hemens, Roman                                                                                                                                  |
+| **Title**       | Automatic instrumentation with OpenTelemetry for software visualization                                                                        |
+| **Year**        | 2024                                                                                                                                           |
+| **Institution** | Department of Computer Science, Kiel University                                                                                                |
+| **URL**         | [https://oceanrep.geomar.de/id/eprint/60243/1/rhe\_bachelor\_thesis.pdf](https://oceanrep.geomar.de/id/eprint/60243/1/rhe_bachelor_thesis.pdf) |
+Bib: Hemens, R. (2024). Automatic instrumentation with OpenTelemetry for software visualization (Bachelor’s thesis, Department of Computer Science, Kiel University). https://oceanrep.geomar.de/id/eprint/60243/1/rhe_bachelor_thesis.pdf
+
+[4] Sivakumaran, V. (2025). The Future of OpenTelemetry: Transforming Modern Observability. International Journal of Computer Engineering and Technology, 16(1), 512–524. https://iaeme.com/MasterAdmin/Journal_uploads/IJCET/VOLUME_16_ISSUE_1/IJCET_16_01_044.pdf
+
+[5] Chandrachood, A. (2024). Optimizing Resource Allocation through Telemetry-Based Performance Monitoring. NAJER, 5(2), 57-61.
+
+[6] OpenTelemetry Documentation (2024). OpenTelemetry Demo Overview. Retrieved from https://opentelemetry.io/docs/demo/
+
+[7]https://opentelemetry.io/docs/
+[8]https://opentelemetry.io/docs/demo/architecture/
+[9]
+[10]
+[11]
+[12]
+[13]
+[14]
+[15]
