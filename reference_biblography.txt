@@ -32,7 +32,8 @@ Bib: Hemens, R. (2024). Automatic instrumentation with OpenTelemetry for softwar
 
 [7]https://opentelemetry.io/docs/
 [8]https://opentelemetry.io/docs/demo/architecture/
-[9]
+[9] https://opentelemetry.io/docs/demo/kubernetes-deployment/
+
 [10]
 [11]
 [12]
