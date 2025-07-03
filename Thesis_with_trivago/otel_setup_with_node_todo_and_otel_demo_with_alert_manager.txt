@@ -1,0 +1,381 @@
+# For Otel_demo_ alert-manager
+...............................................................................................
+ubuntu@ip-172-31-6-102:~$ cat alert-email.yaml 
+alertmanager:
+  config:
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'nurmohammadshawon@gmail.com'
+      smtp_auth_username: 'nurmohammadshawon@gmail.com'
+      smtp_auth_password: 'xuvr jpzk gbpy ajeg'
+      smtp_require_tls: true
+
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 1h
+      receiver: 'null-receiver'
+      routes:
+        - match:
+            severity: critical
+          receiver: email-notifier
+
+    receivers:
+      - name: email-notifier
+        email_configs:
+          - to: 'nurmohammadshawon@gmail.com'
+            send_resolved: true
+
+      - name: null-receiver
+        email_configs: []
+
+.......................................................................................................
+ubuntu@ip-172-31-6-102:~$ cat alertmanager-scrape.yaml 
+# alertmanager-scrape.yaml
+additionalScrapeConfigs:
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager-prometheus-stack-kube-prom-alertmanager.monitoring.svc.cluster.local:9093']
+...........................................................................................................
+ubuntu@ip-172-31-6-102:~$ cat always-firing-rule.yaml 
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: always-firing
+  namespace: monitoring
+spec:
+  groups:
+    - name: test.rules
+      rules:
+        - alert: AlwaysFiringTestAlert
+          expr: vector(1)
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "This is a test alert to verify email notifications"
+            description: "This alert is always firing and used to test Alertmanager email configuration."
+...........................................................................................................
+ubuntu@ip-172-31-6-102:~$ cat cluster-enabled-email.yaml 
+alertmanager:
+  alertmanagerSpec:
+    replicas: 3
+    clusterListenAddress: "0.0.0.0:9094"
+    config:
+      global:
+        smtp_smarthost: 'smtp.gmail.com:587'
+        smtp_from: 'nurmohammadshawon@gmail.com'
+        smtp_auth_username: 'nurmohammadshawon@gmail.com'
+        smtp_auth_password: 'xuvr jpzk gbpy ajeg'  # 🔐 Replace with valid Gmail App Password
+        smtp_hello: 'localhost'
+        smtp_require_tls: true
+        smtp_tls_config:
+          insecure_skip_verify: false
+      route:
+        receiver: email-notifier
+        group_by: ['alertname']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        routes:
+          - matchers:
+              - severity="critical"
+            receiver: email-notifier
+      receivers:
+        - name: email-notifier
+          email_configs:
+            - to: 'nurmohammadshawon@gmail.com'
+              send_resolved: true
+..............................................................................................................
+
+#Node-todo_with opentelemetry
+.................................................................................................................
+
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat Dockerfile 
+FROM node:18
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+EXPOSE 8000
+EXPOSE 9464
+
+ENV OTEL_RESOURCE_ATTRIBUTES=service.name=node-todo-cicd
+
+CMD ["node", "app.js"]
+..................................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat app.js 
+require('./otel');
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const methodOverride = require('method-override');
+const { body, validationResult } = require('express-validator');
+const app = express();
+const port = 8000;
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(methodOverride(function (req, res) {
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    let method = req.body._method;
+    delete req.body._method;
+    return method;
+  }
+}));
+
+let todolist = [];
+
+/* The to do list and the form are displayed */
+app.get('/todo', function (req, res) {
+  res.render('todo.ejs', {
+    todolist,
+    clickHandler: 'func1();'
+  });
+})
+
+/* Adding an item to the to do list */
+.post('/todo/add/', [
+  body('newtodo').trim().escape()
+], function (req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).redirect('/todo');
+  }
+  const newTodo = req.body.newtodo;
+  if (newTodo) {
+    todolist.push(newTodo);
+  }
+  res.redirect('/todo');
+})
+
+/* Deletes an item from the to do list */
+.get('/todo/delete/:id', function (req, res) {
+  if (req.params.id !== '') {
+    todolist.splice(req.params.id, 1);
+  }
+  res.redirect('/todo');
+})
+
+/* Get a single todo item and render edit page */
+.get('/todo/:id', function (req, res) {
+  let todoIdx = req.params.id;
+  let todo = todolist[todoIdx];
+
+  if (todo) {
+    res.render('edititem.ejs', {
+      todoIdx,
+      todo,
+      clickHandler: 'func1();'
+    });
+  } else {
+    res.redirect('/todo');
+  }
+})
+
+/* Edit item in the todo list */
+.put('/todo/edit/:id', [
+  body('editTodo').trim().escape()
+], function (req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).redirect('/todo');
+  }
+  let todoIdx = req.params.id;
+  let editTodo = req.body.editTodo;
+  if (todoIdx !== '' && editTodo) {
+    todolist[todoIdx] = editTodo;
+  }
+  res.redirect('/todo');
+})
+
+/* Redirects to the to do list if the page requested is not found */
+.use(function (req, res, next) {
+  res.redirect('/todo');
+})
+
+.listen(port, function () {
+  console.log(`Todolist running on http://0.0.0.0:${port}`);
+});
+
+module.exports = app;
+...................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat node-todo-deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-todo
+  template:
+    metadata:
+      labels:
+        app: node-todo
+    spec:
+      containers:
+        - name: node-todo
+          image: node-todo-observable:latest
+          imagePullPolicy: Never  # 👈 add this line
+          ports:
+            - containerPort: 8000
+            - containerPort: 9464
+......................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat otel.js 
+const { NodeSDK } = require('@opentelemetry/sdk-node');
+const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+const { PrometheusExporter } = require('@opentelemetry/exporter-prometheus');
+
+const prometheusExporter = new PrometheusExporter({ port: 9464 });
+
+const sdk = new NodeSDK({
+  metricReader: prometheusExporter,
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+async function startSDK() {
+  try {
+    await sdk.start();
+    console.log('✅ OpenTelemetry SDK started');
+  } catch (err) {
+    console.error('❌ OTel startup failed:', err);
+  }
+}
+
+startSDK();
+
+process.on('SIGTERM', () => {
+  sdk.shutdown()
+    .then(() => console.log('✅ OpenTelemetry SDK shut down'))
+    .catch((err) => console.error('❌ Shutdown error', err))
+    .finally(() => process.exit(0));
+});
+.........................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat port_forward.sh 
+#!/bin/bash
+
+kubectl port-forward service/node-todo-service 8000:8000 &
+kubectl port-forward service/node-todo-service 9464:9464 &
+........................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat test.js 
+// Requiring module
+const assert = require('assert');
+
+// We can group similar tests inside a describe block
+describe("Simple Calculations", () => {
+before(() => {
+        console.log( "This part executes once before all tests" );
+});
+
+after(() => {
+        console.log( "This part executes once after all tests" );
+});
+
+// We can add nested blocks for different tests
+describe( "Test1", () => {
+        beforeEach(() => {
+        console.log( "executes before every test" );
+        });
+
+        it("Is returning 5 when adding 2 + 3", () => {
+        assert.equal(2 + 3, 5);
+        });
+
+        it("Is returning 6 when multiplying 2 * 3", () => {
+        assert.equal(2*3, 6);
+        });
+});
+
+describe("Test2", () => {
+        beforeEach(() => {
+        console.log( "executes before every test" );
+        });
+
+        it("Is returning 4 when adding 2 + 3", () => {
+        assert.equal(2 + 3, 5);
+        });
+
+        it("Is returning 8 when multiplying 2 * 4", () => {
+        assert.equal(2*4, 8);
+        });
+});
+});
+....................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat node-todo-service.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-todo-service
+spec:
+  type: ClusterIP
+  selector:
+    app: node-todo
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+    - name: metrics
+      port: 9464
+      targetPort: 9464
+........................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat package.json 
+{
+  "name": "my-todolist",
+  "version": "0.1.0",
+  "description": "Basic to do list exercise",
+  "author": "riaan@entersekt.com",
+  "scripts": {
+    "start": "node app.js",
+    "test": "mocha --recursive --exit"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ejs": "^3.1.10",
+    "body-parser": "^1.20.3",
+    "method-override": "^3.0.0",
+    "express-validator": "^7.2.0",
+    "@opentelemetry/api": "1.4.1",
+    "@opentelemetry/sdk-node": "^0.39.0",
+    "@opentelemetry/resources": "^1.9.0",
+    "@opentelemetry/semantic-conventions": "^1.9.0",
+    "@opentelemetry/exporter-jaeger": "^1.9.0",
+    "@opentelemetry/exporter-prometheus": "^0.39.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.39.0"
+  },
+  "devDependencies": {
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
+    "c8": "^10.1.2",
+    "supertest": "^7.0.0"
+  }
+}
+............................................................................................................
+ubuntu@ip-172-31-8-204:~/node-todo-cicd$ cat jaeger-collector-service.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: default
+spec:
+  ports:
+    - name: http-collector
+      port: 14268
+      protocol: TCP
+      targetPort: 14268
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: jaeger-collector
+  namespace: default
+subsets:
+  - addresses:
+      - ip: 172.31.8.204  # <-- Replace with EC2 private IP
+    ports:
+      - port: 14268
+....................................................................................................................
+
