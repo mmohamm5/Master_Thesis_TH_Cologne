@@ -1,0 +1,30 @@
+ssh -i "otel_k8s_kind.pem" -L 8080:localhost:8080 -L 9090:localhost:9090 -L 9093:localhost:9093 ubuntu@ec2-18-206-196-80.compute-1.amazonaws.com
+
+
+
+
+
+http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
+
+
+✅ 4. Import Dashboards to View Target Metrics
+Go to:
+
++ > Import
+
+Use one of these Dashboard IDs from Grafana.com:
+
+Dashboard ID	Description
+1860	Node Exporter Full
+11074	Prometheus 2.0 Overview
+6417	Kubernetes Cluster Monitoring (via Prom)
+14464	Kubernetes Monitoring with kube-state
+
+Steps:
+
+Paste the ID, click Load
+
+Choose Prometheus as the data source
+
+Click Import
+
